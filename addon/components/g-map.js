@@ -11,6 +11,7 @@ import { tryInvoke } from '@ember/utils';
 import { all } from 'rsvp';
 import { next } from '@ember/runloop';
 import { assign } from '@ember/polyfills';
+import values from 'lodash/values';
 
 /**
  * @class GMap
@@ -142,7 +143,7 @@ export default Component.extend(RegisterEvents, MapComponent, {
       tryInvoke(this, 'onLoad', [{ map, publicAPI }]);
 
       let componentInitPromises =
-        Object.values(this.components)
+        values(this.components)
           .reduce((a, b) => a.concat(b))
           .map((a) => a.isInitialized.promise);
 
