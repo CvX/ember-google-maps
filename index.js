@@ -86,7 +86,7 @@ module.exports = {
       { key: 'autocomplete', component: 'g-map/autocomplete' },
       { key: 'directions', component: 'g-map/directions' },
       { key: 'route', component: 'g-map/route' }
-    ]);
+    ]).filter(({ key }) => !this.excludeName(key));
 
     let template = Handlebars.compile(stripIndent(`
       \\{{yield (merge-objects gMap
@@ -108,19 +108,16 @@ module.exports = {
   },
 
   filterComponents(tree) {
-    const whitelist = this.whitelist;
-    const blacklist = this.blacklist;
-
     if (this.noFiltersDefined) {
       return tree;
     }
 
     return new Funnel(tree, {
-      exclude: [(name) => this.excludeComponent(name, whitelist, blacklist)]
+      exclude: [(name) => this.excludeComponent(name)]
     });
   },
 
-  excludeComponent(name, whitelist, blacklist) {
+  excludeComponent(name) {
     const regex = /components\//;
 
     const isComponent = regex.test(name);
@@ -129,40 +126,38 @@ module.exports = {
     }
 
     if (/-private-api\/addon-factory/.test(name)) {
-      console.log('addon-f', name);
-      return false;
-    }
-
-    if (whitelist.length === 0 && blacklist.length === 0) {
       return false;
     }
 
     let baseName = path.basename(name);
     baseName = baseName.split('.').shift();
 
-    let isWhiteListed = whitelist.indexOf(baseName) !== -1;
-    let isBlackListed = blacklist.indexOf(baseName) !== -1;
+    return this.excludeName(baseName);
+  },
+
+  excludeName(name) {
+    if (this.whitelist.length === 0 && this.blacklist.length === 0) {
+      return false;
+    }
+
+    let isWhiteListed = this.whitelist.indexOf(name) !== -1;
+    let isBlackListed = this.blacklist.indexOf(name) !== -1;
 
     // Include if both white- and blacklisted
     if (isWhiteListed && isBlackListed) {
-      console.log('wh & bl', name);
       return false;
     }
 
     // Only whitelisted
-    if (whitelist.length && blacklist.length === 0) {
-      console.log('wh', name);
+    if (this.whitelist.length && this.blacklist.length === 0) {
 
       return !isWhiteListed;
     }
 
     // Only blacklisted
-    if (blacklist.length && whitelist.length === 0) {
-      console.log('bl', name);
+    if (this.blacklist.length && this.whitelist.length === 0) {
       return isBlackListed;
     }
-
-    console.log('other', !isWhiteListed || isBlackListed, name);
 
     return !isWhiteListed || isBlackListed;
   },
