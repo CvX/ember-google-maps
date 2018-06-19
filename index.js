@@ -129,6 +129,11 @@ module.exports = {
     }
 
     if (/-private-api\/addon-factory/.test(name)) {
+      console.log('addon-f', name);
+      return false;
+    }
+
+    if (whitelist.length === 0 && blacklist.length === 0) {
       return false;
     }
 
@@ -138,24 +143,26 @@ module.exports = {
     let isWhiteListed = whitelist.indexOf(baseName) !== -1;
     let isBlackListed = blacklist.indexOf(baseName) !== -1;
 
-    if (whitelist.length === 0 && blacklist.length === 0) {
-      return false;
-    }
-
     // Include if both white- and blacklisted
     if (isWhiteListed && isBlackListed) {
+      console.log('wh & bl', name);
       return false;
     }
 
     // Only whitelisted
     if (whitelist.length && blacklist.length === 0) {
+      console.log('wh', name);
+
       return !isWhiteListed;
     }
 
     // Only blacklisted
     if (blacklist.length && whitelist.length === 0) {
+      console.log('bl', name);
       return isBlackListed;
     }
+
+    console.log('other', !isWhiteListed || isBlackListed, name);
 
     return !isWhiteListed || isBlackListed;
   },
